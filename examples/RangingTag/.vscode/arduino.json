@@ -1,0 +1,6 @@
+{
+    "board": "esp32:esp32:pico32",
+    "configuration": "PartitionScheme=default,UploadSpeed=921600,DebugLevel=none",
+    "port": "COM5",
+    "sketch": "RangingTag.ino"
+}

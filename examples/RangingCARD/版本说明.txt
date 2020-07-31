@@ -1,0 +1,8 @@
+100ms tag loop
+900ms anchor loop
+sniff mode
+
+next£º
+8byte addr data
+task 
+beacon sender and scanner
