@@ -1,6 +1,0 @@
-{
-    "board": "esp32:esp32:pico32",
-    "configuration": "PartitionScheme=default,UploadSpeed=921600,DebugLevel=none",
-    "port": "COM35",
-    "sketch": "RTLS_Anchor.ino"
-}

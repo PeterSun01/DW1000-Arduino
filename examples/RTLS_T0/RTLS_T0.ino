@@ -39,7 +39,7 @@ uint16_t target_anchor_addr=A0_ADDR;//目标基站短地址
 //标识上位机通信协议中距离值的有效情况，如mask=0000 0001则代表A0基站测距数据有效
 //如mask=0000 0011则代表A0/A1基站测距数据有效
 uint8_t range_mask=0x00;
-uint16_t range_A0=0,range_A1=0,range_A2=0,range_A3=0;
+int range_A0=-1,range_A1=-1,range_A2=-1,range_A3=-1;
 
 /*
 * 函数名称：setup() 
@@ -121,9 +121,10 @@ void next_range()
     else if(target_anchor_addr==A3_ADDR)//一次测距周期结束，进行数据打包
     {
         static uint16_t out_data_count=0;
+        uint16_t range_time = millis();
         char out_data[100];
         sprintf(out_data,"mc %02x %08x %08x %08x %08x %04x %02x %08x t%d:0",range_mask,range_A0,range_A1,range_A2,range_A3,\
-        out_data_count++,seq_number,0,(uint8_t)T0_ADDR);
+        out_data_count++,seq_number,range_time,(uint8_t)T0_ADDR);
         
         Serial.println(out_data);
         transmitRangeData(0XFFFF);//广播发送汇总测距结果
@@ -138,7 +139,7 @@ void next_range()
 void resetInactive() 
 {
     range_mask=0x0;
-    range_A0=0;range_A1=0;range_A2=0;range_A3=0;
+    range_A0=-1, range_A1=-1, range_A2=-1, range_A3=-1;
     expectedMsgId = FC_RESP;
     target_anchor_addr = A0_ADDR;
     transmitPoll(target_anchor_addr);
@@ -281,16 +282,16 @@ void loop()
     if(receivetimeoutAck)//接收数据超时
     {
         receivetimeoutAck = false;
-        if(expectedMsgId == FC_RESP)
-        {
-            Serial.print("recv ANCHOR RESP time out,Addr=0x");
-            Serial.println(target_anchor_addr,HEX);
-        }
-        else if(expectedMsgId == FC_REPORT)
-        {
-            Serial.print("recv ANCHOR REPORT time out,Addr=0x");
-            Serial.println(target_anchor_addr,HEX);
-        }
+        // if(expectedMsgId == FC_RESP)
+        // {
+        //     Serial.print("recv ANCHOR RESP time out,Addr=0x");
+        //     Serial.println(target_anchor_addr,HEX);
+        // }
+        // else if(expectedMsgId == FC_REPORT)
+        // {
+        //     Serial.print("recv ANCHOR REPORT time out,Addr=0x");
+        //     Serial.println(target_anchor_addr,HEX);
+        // }
         next_range();//进行下一个基站测距
     }
     //超过测距周期（RangingPeriod）未发送和接收成功，则重新启动测距周期，重新发起发送POLL消息
@@ -368,10 +369,10 @@ void loop()
                 range_mask=range_mask|0x08;
             }
 
-            Serial.print("Range From A"); 
-            Serial.print((uint8_t)target_anchor_addr,HEX); 
-            Serial.print("="); 
-            Serial.print((float)(distance/1000.0)); Serial.println(" m");
+            // Serial.print("Range From A"); 
+            // Serial.print((uint8_t)target_anchor_addr,HEX); 
+            // Serial.print("="); 
+            // Serial.print((float)(distance/1000.0)); Serial.println(" m");
             noteActivity();//记录当前时间（喂狗）
             next_range();//进行下一个基站的测距
         } 

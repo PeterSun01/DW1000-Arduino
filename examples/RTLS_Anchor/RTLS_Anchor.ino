@@ -299,8 +299,8 @@ void loop()
             distance=DW1000.correctRange(distance);//校准距离值
             uint16_t tag_address=((uint16_t)data[8])<<8|data[7];//记录标签短地址
             transmitRangeReport(tag_address,distance);//发送REPORT消息
-            Serial.print("Range: "); Serial.print(distance); Serial.print(" m");
-            Serial.print("\t RX power: "); Serial.print(DW1000.getReceivePower()); Serial.println(" dBm");
+            // Serial.print("Range: "); Serial.print(distance); Serial.print(" m");
+            // Serial.print("\t RX power: "); Serial.print(DW1000.getReceivePower()); Serial.println(" dBm");
             noteActivity();//记录当前时间（喂狗）
         }
         else if (msgId == FC_RANGEDATA) //接收的数据是RANGEDATA
@@ -308,12 +308,27 @@ void loop()
             static uint16_t out_data_count=0;
             char out_data[100];
             byte device_addr[2];
-            DW1000.getDeviceAddress(&device_addr[0]);   
-            //数据打包串口发送
-            sprintf(out_data,"mc %02x %08x %08x %08x %08x %04x %02x %08x a%d:%d",\
-            data[18],(uint16_t)(data[10])<<8|data[11],(uint16_t)(data[12])<<8|data[13],(uint16_t)(data[14])<<8|data[15],(uint16_t)(data[16])<<8|data[17],\
-            out_data_count++,seq_number,0,data[7],device_addr[0]);
+            int rang[4] = {-1, -1, -1, -1};
+            uint8_t range_mask = data[18];
+            uint16_t range_time = millis();
+            int i, j;
+            for(i = 0; i<4; i++)
+            {
+              if(range_mask&0x01)
+              {
+                rang[i] = (int)(data[j+10])<<8|data[j+11];
+              }
+              j = j+2;
+              range_mask = range_mask >> 1;
+            }
+            DW1000.getDeviceAddress(&device_addr[0]);  
             
+            //数据打包串口发送
+            // sprintf(out_data,"mc %02x %08x %08x %08x %08x %04x %02x %08x a%d:%d",\
+            // data[18],(int)(data[10])<<8|data[11],(int)(data[12])<<8|data[13],(int)(data[14])<<8|data[15],(int16_t)(data[16])<<8|data[17],\
+            // out_data_count++,seq_number,0,data[7],device_addr[0]);
+            sprintf(out_data,"mc %02x %08x %08x %08x %08x %04x %02x %08x a%d:%d",\
+                                data[18], rang[0], rang[1], rang[2], rang[3], out_data_count++,seq_number, range_time, data[7], device_addr[0]);
             Serial.println(out_data);
 
             DW1000.idle();//一个测距周期完毕，接入空闲模式
